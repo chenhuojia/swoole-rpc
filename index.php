@@ -18,7 +18,7 @@ function autoload( $class ){
 }
 spl_autoload_register( 'autoload' );
 // 继承Core父类
-class Gmu extends chj\PRC\Coroutine\Server\Server {
+class Gmu extends chj\rpc\Coroutine\Server\Server {
 
     // 具体业务逻辑
     public function process( $server, $param ){

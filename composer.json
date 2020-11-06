@@ -1,6 +1,6 @@
 {
-  "name": "chj/PRC",
-  "description": "tree data 使用递归生成树形数据，简单实用",
+  "name": "chj/rpc",
+  "description": "swoole4.5+ 协程RPC服务",
   "keywords": [
     "rpc",
     "swoole"
@@ -18,7 +18,7 @@
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "chj\\": "src/"
+      "chj\\rpc\\": "src/"
     }
   }
 }
