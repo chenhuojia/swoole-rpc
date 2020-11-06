@@ -2,7 +2,7 @@
 
 namespace chj\Rpc\Coroutine\Server;
 
-use chj\RpcCoroutine\Library\Packet;
+use chj\Rpc\Coroutine\Library\Packet;
 
 abstract class Server
 {
