@@ -1,5 +1,5 @@
 {
-  "name": "chj/rpc",
+  "name": "chj/swoole-rpc",
   "description": "swoole4.5+ 协程RPC服务",
   "keywords": [
     "rpc",
@@ -18,7 +18,7 @@
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "chj\\rpc\\": "src/"
+      "chj\\SwooleRpc\\": "src/"
     }
   }
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace chj\rpc\Coroutine\Server;
+namespace chj\SwooleRpc\Coroutine\Server;
 
-use chj\rpc\Coroutine\Library\Packet;
+use chj\SwooleRpc\Coroutine\Library\Packet;
 
 abstract class Server
 {

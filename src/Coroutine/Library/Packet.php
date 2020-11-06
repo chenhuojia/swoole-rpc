@@ -1,6 +1,6 @@
 <?php
 
-namespace chj\rpc\Coroutine\Library;
+namespace chj\SwooleRpc\Coroutine\Library;
 
 class Packet{
 
