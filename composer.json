@@ -1,0 +1,24 @@
+{
+  "name": "chj/rpc",
+  "description": "tree data 使用递归生成树形数据，简单实用",
+  "keywords": [
+    "rpc",
+    "swoole"
+  ],
+  "minimum-stability": "stable",
+  "authors": [
+    {
+      "name": "chenhuojia",
+      "email": "1126089253@qq.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.2"
+  },
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "chj\\": "src/"
+    }
+  }
+}
