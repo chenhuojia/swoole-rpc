@@ -1,6 +1,6 @@
 <?php
 
-namespace chj\Rpc\Coroutine\Library;
+namespace chj\PRC\Coroutine\Library;
 
 class Packet{
 
