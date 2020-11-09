@@ -1,65 +1,5 @@
 <?php
-require_once './tcp.php';
-define('HaveGenerator', class_exists("\\Generator", false));
-function array_get($data,$key, $default = '')
-{
-    if (array_key_exists($key,$data))
-    {
-        return $data[$key];
-    }
-    return  $default;
-}
-function exists2($array, $key)
-{
-    if ($array instanceof ArrayAccess) {
-        return $array->offsetExists($key);
-    }
-
-    return array_key_exists($key, $array);
-}
-function forget(&$array, $keys)
-{
-    $original = &$array;
-
-    $keys = (array) $keys;
-
-    if (count($keys) === 0) {
-        return ;
-    }
-
-    foreach ($keys as $key) {
-        // if the exact key exists in the top-level, remove it
-        if (exists2($array, $key)) {
-            unset($array[$key]);
-            continue;
-        }
-
-        $parts = explode('.', $key);
-
-        // clean up before each pass
-        $array = &$original;
-
-        while (count($parts) > 1) {
-            $part = array_shift($parts);
-
-            if (isset($array[$part]) && is_array($array[$part])) {
-                $array = &$array[$part];
-            } else {
-                continue 2;
-            }
-        }
-
-        unset($array[array_shift($parts)]);
-    }
-}
-function array_except($array, $keys)
-{
-    forget($array, $keys);
-
-    return $array;
-}
-
-
+namespace chj\SwooleRpc\Coroutine\Library;
 
 class Router{
 
@@ -89,7 +29,7 @@ class Router{
 
         self::$groupStack[] = $attributes;
 
-        call_user_func($callback, self::class);
+        call_user_func($callback, new static());
 
         array_pop(self::$groupStack);
     }
@@ -114,10 +54,10 @@ class Router{
         }
 
         $action = self::mergeLastGroupAttributes($action);
-
         if (!empty($action['prefix'])) {
             $name = ltrim(rtrim(trim($action['prefix'], '_') . '_' . trim($name, '_'), '_'), '_');
         }
+        var_dump($action);
         switch ($action['type']) {
             case 'method':
                 list($class, $method) = self::parseController($action['namespace'], $action['controller']);
@@ -136,7 +76,7 @@ class Router{
         return self::class;
     }
 
-    public static function addMethod($method, $scope, $alias = '', array $options = [])
+    private static function addMethod($method, $scope, $alias = '', array $options = [])
     {
         $func = array($scope, $method);
         if (!is_callable($func)) {
@@ -180,7 +120,7 @@ class Router{
         return self::class;
     }
 
-    public static function addFunction($func, $alias = '', array $options = array()) {
+    private static function addFunction($func, $alias = '', array $options = array()) {
         if (!is_callable($func)) {
             throw new Exception('Argument func must be callable.');
         }
@@ -224,7 +164,7 @@ class Router{
 
     static function getCalls()
     {
-        return [self::$groupStack,self::$calls];
+        return self::$map;
     }
     /**
      * 获取所有已添加方法列表
@@ -366,21 +306,10 @@ class Router{
         $namespace = $namespace ? $namespace : config('hprose.controller');
 
         list($classAsStr, $method) = explode('@', $controller);
-
-        $class = resolve(join('\\', array_filter([$namespace, $classAsStr])));
-
+        $targetModel = join('\\', array_filter([$namespace, $classAsStr]));
+        $class = new $targetModel;
         return [$class, $method];
     }
 }
 
-\Router::group(['namespace' => 'App\Controllers'], function ($route) {
-    $route::add('getUserByName', function ($name,$tes) {
-        return 'name: ' . $name;
-    });
-    $route::add('getUserByName2', function ($name,$tes) {
-        return 'name: ' . $name;
-    });
-});
 
-var_dump(Router::getMethods()).PHP_EOL;
-var_dump(Router::getCalls()).PHP_EOL;

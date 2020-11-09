@@ -33,6 +33,17 @@ class Gmu extends chj\SwooleRpc\Coroutine\Server\Server {
     }
 
 }
+chj\SwooleRpc\Coroutine\Library\Router::group(['namespace' => 'Application\Controller'], function ($route) {
+
+    $route::add('login','Account@index');
+    $route::add('getUserByName', function ($name,$tes) {
+        return 'name: ' . $name;
+    });
+    $route::add('getUserByName2', function ($name) {
+        return 'name: ' . $name;
+    });
+});
+print_r(chj\SwooleRpc\Coroutine\Library\Router::getCalls()).PHP_EOL;
 $gmu = new Gmu();
 // 开启一些配置项
 $gmu->initSetting( array(

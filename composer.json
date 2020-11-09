@@ -20,6 +20,9 @@
     "psr-4": {
       "chj\\SwooleRpc\\": "src/",
       "Application\\": "Application/"
-    }
+    },
+    "files": [
+      "src/function.php"
+    ]
   }
 }
