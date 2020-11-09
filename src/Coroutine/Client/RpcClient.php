@@ -3,7 +3,7 @@
  * tcp协程客户端
  */
 namespace chj\SwooleRpc\Coroutine\Client;
-use chj\SwooleRpc\Coroutine\Library\Packet;
+use chj\SwooleRpc\Library\Packet;
 
 class RpcClient
 {
