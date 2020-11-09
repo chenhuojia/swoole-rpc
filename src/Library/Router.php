@@ -1,5 +1,5 @@
 <?php
-namespace chj\SwooleRpc\Coroutine\Library;
+namespace chj\SwooleRpc\Library;
 
 class Router{
 
@@ -52,12 +52,10 @@ class Router{
         } elseif (is_callable($action)) {
             $action = ['callable' => $action, 'type' => 'callable'];
         }
-
         $action = self::mergeLastGroupAttributes($action);
         if (!empty($action['prefix'])) {
             $name = ltrim(rtrim(trim($action['prefix'], '_') . '_' . trim($name, '_'), '_'), '_');
         }
-        var_dump($action);
         switch ($action['type']) {
             case 'method':
                 list($class, $method) = self::parseController($action['namespace'], $action['controller']);
@@ -80,7 +78,7 @@ class Router{
     {
         $func = array($scope, $method);
         if (!is_callable($func)) {
-            throw new Exception('Argument func must be callable.');
+            throw new \Exception('Argument func must be callable.');
         }
         if (is_array($alias) && empty($options)) {
             $options = $alias;
@@ -94,7 +92,7 @@ class Router{
                 $alias = $func[1];
             }
             else {
-                throw new Exception('Need an alias');
+                throw new \Exception('Need an alias');
             }
         }
         $name = strtolower($alias);
@@ -103,13 +101,13 @@ class Router{
         }
         if (HaveGenerator) {
             if (is_array($func)) {
-                $f = new ReflectionMethod($func[0], $func[1]);
+                $f = new \ReflectionMethod($func[0], $func[1]);
             }
             else {
-                $f = new ReflectionFunction($func);
+                $f = new \ReflectionFunction($func);
             }
         }
-        $call = new stdClass();
+        $call = new \stdClass();
         $call->method = $func;
         $call->mode = isset($options['mode']) ? $options['mode'] :0;
         $call->simple = isset($options['simple']) ? $options['simple'] : null;
@@ -122,7 +120,7 @@ class Router{
 
     private static function addFunction($func, $alias = '', array $options = array()) {
         if (!is_callable($func)) {
-            throw new Exception('Argument func must be callable.');
+            throw new \Exception('Argument func must be callable.');
         }
         if (is_array($alias) && empty($options)) {
             $options = $alias;
@@ -136,7 +134,7 @@ class Router{
                 $alias = $func[1];
             }
             else {
-                throw new Exception('Need an alias');
+                throw new \Exception('Need an alias');
             }
         }
         $name = strtolower($alias);
@@ -145,13 +143,13 @@ class Router{
         }
         if (HaveGenerator) {
             if (is_array($func)) {
-                $f = new ReflectionMethod($func[0], $func[1]);
+                $f = new \ReflectionMethod($func[0], $func[1]);
             }
             else {
-                $f = new ReflectionFunction($func);
+                $f = new \ReflectionFunction($func);
             }
         }
-        $call = new stdClass();
+        $call = new \stdClass();
         $call->method = $func;
         $call->mode = isset($options['mode']) ? $options['mode'] : 0;
         $call->simple = isset($options['simple']) ? $options['simple'] : null;
@@ -224,6 +222,7 @@ class Router{
     private function mapRefMethodParameterName($class, string $method, string $alias)
     {
         $ref = new \ReflectionMethod($class, $method);
+        $alias = strtolower($alias);
         self::$map[$alias]['parameterNames'] = array_map(function ($parameter) {
             return $parameter->name;
         }, $ref->getParameters());
@@ -239,6 +238,7 @@ class Router{
     private function mapRefFuncParameterName(callable $callback, string $alias)
     {
         $ref = new \ReflectionFunction($callback);
+        $alias = strtolower($alias);
         self::$map[$alias]['parameterNames'] = array_map(function ($parameter) {
             return $parameter->name;
         }, $ref->getParameters());
@@ -309,6 +309,21 @@ class Router{
         $targetModel = join('\\', array_filter([$namespace, $classAsStr]));
         $class = new $targetModel;
         return [$class, $method];
+    }
+
+    /**
+     * 运行方法
+     * @param $name
+     * @param mixed ...$params
+     * @return mixed
+     */
+    public static function runMethod($name,...$params)
+    {
+        $name = strtolower($name);
+        if (array_key_exists($name,self::$calls))
+        {
+            return call_user_func_array(self::$calls[$name]->method,$params);
+        }
     }
 }
 

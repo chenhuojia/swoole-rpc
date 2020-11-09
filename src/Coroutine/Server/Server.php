@@ -1,10 +1,12 @@
 <?php
-
+/**
+ * tcp协程服务
+ */
 namespace chj\SwooleRpc\Coroutine\Server;
+use chj\SwooleRpc\Library\Packet;
+use chj\SwooleRpc\Library\Router;
 
-use chj\SwooleRpc\Coroutine\Library\Packet;
-
-abstract class Server
+class Server
 {
     private $rootPath = '';
 
@@ -194,13 +196,13 @@ abstract class Server
      */
     private function _run(){
         $this->_statusUI();
-        $pool = new \Swoole\Process\Pool(2,SWOOLE_IPC_UNIXSOCK );
+        $this->_registerMethodUI();
+        $pool = new \Swoole\Process\Pool(1,SWOOLE_IPC_UNIXSOCK );
         //让每个OnWorkerStart回调都自动创建一个协程
         $pool->set(['enable_coroutine' => true]);
         $pool->on('workerStart', function ($pool, $workerId) {
             // 开启tcp服务器
             $this->tcpServer = new \Swoole\Coroutine\Server($this->tcpSetting['host'], $this->tcpSetting['port'] , false, true);
-            echo "Worker#{$workerId} is started\n";
             \Swoole\Coroutine::set($this->coroutineSetting);
             $this->tcpServer->set($this->tcpSetting);
             //收到15信号关闭服务
@@ -280,6 +282,7 @@ abstract class Server
                     $taskData=array(
                         'requestId' => $data['requestId'],
                         'type' => $data['type'],
+                        'name' => $key,
                         'param' => $item,
                     );
                     $send_data[] = $this->process( $conn, $taskData );
@@ -304,7 +307,25 @@ abstract class Server
     }
 
     // 具体业务逻辑
-    abstract public function process( $conn, $param );
+    public function process( $server, $param ){
+        $name = strtolower($param['method']);
+        if (array_key_exists($name,Router::$calls))
+        {
+            return call_user_func_array(Router::$calls[$name]->method,$param['param']);
+        }else{
+            return  [
+                'code'      =>  -1,
+                'message'   =>  '服务未注册!'
+            ];
+        }
+        // 将param抛给model中的method，并获得到处理完后的数据
+        $targetModel = '\Application\\Controller\\'.ucfirst( $param['param']['model'] );
+        $targetModel = new $targetModel;
+        $targetConfig['param'] = $param['param']['param'];
+        $sendData = call_user_func_array( array( $targetModel, $param['param']['method'] ), array( $targetConfig ) );
+        return $sendData;
+
+    }
 
     /*
      * @desc : swoole http服务器收到的请求会打到这里来
@@ -491,5 +512,17 @@ abstract class Server
         echo "                     TCP:".$this->tcpSetting['port']."\n\n";
         echo "------------------------\033[47;30m PROCESS \033[0m---------------------------\n";
         echo "      MasterPid---ManagerPid---WorkerId---WorkerPid".PHP_EOL;
+    }
+
+    /*
+     * @desc : 已注册方法
+    */
+    private function _registerMethodUI(){
+        echo '可用方法：'.PHP_EOL;
+        $methods = Router::getMethods();
+        foreach ($methods as $method)
+        {
+            echo $method.PHP_EOL;
+        }
     }
 }

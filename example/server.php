@@ -9,33 +9,21 @@ if( !extension_loaded('swoole') ){
 
 // 定义系统常量
 define( 'DS', DIRECTORY_SEPARATOR );
-define( 'ROOT', __DIR__.DS );
+define( 'ROOT', dirname(__DIR__).DS );
+define('HaveGenerator', class_exists("\\Generator", false));
 
+include '../src/function.php';
 function autoload( $class ){
     $includePath = str_replace( '\\', DS, $class );
+    $includePath = str_replace( 'chj/SwooleRpc', 'src', $includePath );
     $targetFile = ROOT.$includePath.'.php';
     require_once( $targetFile );
 }
 spl_autoload_register( 'autoload' );
-// 继承Core父类
-class Gmu extends chj\SwooleRpc\Coroutine\Server\Server {
 
-    // 具体业务逻辑
-    public function process( $server, $param ){
-        var_dump($param).PHP_EOL;
-        // 将param抛给model中的method，并获得到处理完后的数据
-        $targetModel = '\Application\\Controller\\'.ucfirst( $param['param']['model'] );
-        $targetModel = new $targetModel;
-        $targetConfig['param'] = $param['param']['param'];
-        $sendData = call_user_func_array( array( $targetModel, $param['param']['method'] ), array( $targetConfig ) );
-        return $sendData;
-
-    }
-
-}
-chj\SwooleRpc\Coroutine\Library\Router::group(['namespace' => 'Application\Controller'], function ($route) {
-
-    $route::add('login','Account@index');
+chj\SwooleRpc\Library\Router::group(['namespace' => 'Application\Controller'], function ($route) {
+    $route::add('login','Account@login');
+    $route::add('login2','Account@login2');
     $route::add('getUserByName', function ($name,$tes) {
         return 'name: ' . $name;
     });
@@ -43,8 +31,8 @@ chj\SwooleRpc\Coroutine\Library\Router::group(['namespace' => 'Application\Contr
         return 'name: ' . $name;
     });
 });
-print_r(chj\SwooleRpc\Coroutine\Library\Router::getCalls()).PHP_EOL;
-$gmu = new Gmu();
+
+$gmu = new chj\SwooleRpc\Coroutine\Server\Server();
 // 开启一些配置项
 $gmu->initSetting( array(
     'http' => array(

@@ -16,7 +16,7 @@ $mn = array(
             'model' => 'Account',
             'method' => 'login',
             'param' => array(
-                'username' => 'wahah',
+                'username' => 'wahah222',
                 'password' => 'wahah',
             ),
         ),
