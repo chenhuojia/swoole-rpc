@@ -13,8 +13,7 @@
     }
   ],
   "require": {
-    "php": ">=7.2",
-    "swoole": ">=4.5"
+    "php": ">=7.2"
   },
   "license": "MIT",
   "autoload": {
