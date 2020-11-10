@@ -475,11 +475,11 @@ class Server
     private function _usageUI(){
         echo PHP_EOL.PHP_EOL.PHP_EOL;
         echo "--------------------------------------------------------------------------".PHP_EOL;
-        echo "|                  -- ------- *     |----  |----   ----                    |".PHP_EOL;
-        echo "|                 -    |    |     |    | |    | |                        |".PHP_EOL;
-        echo "|                 -     |    |     |----  |----  |                        |".PHP_EOL;
-        echo "|                 -    |    |     | \    |      |                        |".PHP_EOL;
-        echo "|                      |    |     |   \  |       ----                    |".PHP_EOL;
+        echo "|                   |     |    ——————   |----   |----   ----              |".PHP_EOL;
+        echo "|                   |     |       |     |    |  |    |  |                 |".PHP_EOL;
+        echo "|                   |-----|       |     |----   |----   |                 |".PHP_EOL;
+        echo "|                   |     |       |     | \     |       |                 |".PHP_EOL;
+        echo "|                   |     |    ---      |   \   |        ----             |".PHP_EOL;
         echo "--------------------------------------------------------------------------".PHP_EOL;
         echo 'USAGE: php index.php commond'.PHP_EOL;
         echo '1. start,以debug模式开启服务，此时服务不会以daemon形式运行'.PHP_EOL;
@@ -499,14 +499,14 @@ class Server
         swoole_set_process_name("chj-master-thread");
         echo PHP_EOL.PHP_EOL.PHP_EOL;
         echo "--------------------------------------------------------------------------".PHP_EOL;
-        echo "|                   ------- *     |----  |----   ----                    |".PHP_EOL;
-        echo "|                      |    |     |    | |    | |                        |".PHP_EOL;
-        echo "|                      |    |     |----  |----  |                        |".PHP_EOL;
-        echo "|                      |    |     | \    |      |                        |".PHP_EOL;
-        echo "|                      |    |     |   \  |       ----                    |".PHP_EOL;
+        echo "|                   |     |    ——————   |----   |----   ----              |".PHP_EOL;
+        echo "|                   |     |       |     |    |  |    |  |                 |".PHP_EOL;
+        echo "|                   |-----|       |     |----   |----   |                 |".PHP_EOL;
+        echo "|                   |     |       |     | \     |       |                 |".PHP_EOL;
+        echo "|                   |     |    ---      |   \   |        ----             |".PHP_EOL;
         echo "--------------------------------------------------------------------------".PHP_EOL;
         echo "\033[1A\n\033[K-----------------------\033[47;30m CHJ Server \033[0m-----------------------------\n\033[0m";
-        echo "    Version:0.2 Beta, PHP Version:".PHP_VERSION.PHP_EOL;
+        echo "    Version:0.2 Beta, PHP Version:".PHP_VERSION.'  SWOOLE Version:'.SWOOLE_VERSION.PHP_EOL;
         echo "         The Server is running on TCP".PHP_EOL.PHP_EOL;
         echo "--------------------------\033[47;30m PORT \033[0m---------------------------\n";
         echo "                     TCP:".$this->tcpSetting['port']."\n\n";

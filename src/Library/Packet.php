@@ -36,9 +36,12 @@ class Packet{
                 $len = $len['len'];
                 $jsonString = substr( $jsonString, 4, $len );
             }
+        }
+        if (SWOOLE_VERSION >= '4.5.6')
+        {
             return swoole_substr_json_decode( $jsonString, 0,null,true );
-        } else {
-            return swoole_substr_json_decode( $jsonString, 0,null,true );
+        }else{
+            return json_decode($jsonString);
         }
     }
 
