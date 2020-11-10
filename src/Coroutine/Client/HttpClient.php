@@ -5,7 +5,7 @@
 namespace chj\Swoole\Coroutine\Client;
 use chj\Swoole\Library\Packet;
 
-class RpcClient
+class HttpClient
 {
 
     private static $instance;

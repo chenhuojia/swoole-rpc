@@ -1,5 +1,5 @@
 <?php
-namespace chj\SwooleRpc\Library;
+namespace chj\Swoole\Library;
 
 class Router{
 
@@ -319,12 +319,42 @@ class Router{
      */
     public static function runMethod($name,...$params)
     {
+        $name = ltrim($name,'/');
         $name = strtolower($name);
         if (array_key_exists($name,self::$calls))
         {
             return call_user_func_array(self::$calls[$name]->method,$params);
         }
+        return ['code'=>-1,'message'=>'fail'];
     }
+
+    /**
+     * 运行方法
+     * @param $name
+     * @param mixed ...$params
+     * @return mixed
+     */
+    public static function runHttpMethod($name,$request)
+    {
+        $name = ltrim($name,'/');
+        $name = strtolower($name);
+        if (array_key_exists($name,self::$calls))
+        {
+            $params = [];
+            if ($request->get)
+            {
+                $params =   $request->get;
+            }
+            if ($request->post)
+            {
+                $params =  array_merge($params,$request->post);
+            }
+            var_dump($params);
+            return call_user_func_array(self::$calls[$name]->method,$params);
+        }
+        return ['code'=>-1,'message'=>'fail'];
+    }
+
 }
 
 

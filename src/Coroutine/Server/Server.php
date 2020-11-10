@@ -2,9 +2,9 @@
 /**
  * tcp协程服务
  */
-namespace chj\SwooleRpc\Coroutine\Server;
-use chj\SwooleRpc\Library\Packet;
-use chj\SwooleRpc\Library\Router;
+namespace chj\Swoole\Coroutine\Server;
+use chj\Swoole\Library\Packet;
+use chj\Swoole\Library\Router;
 
 class Server
 {
@@ -47,6 +47,7 @@ class Server
         'port' => 9801,
         'host' => '0.0.0.0',
         'daemonize'=>false,
+        'start'=>false,
     ];
 
     /*
@@ -56,6 +57,7 @@ class Server
         'host' => '0.0.0.0',
         'port' => 9802,
         'daemonize'=>false,
+        'start'=>false,
     ];
 
     private $coroutineSetting = [
@@ -85,9 +87,11 @@ class Server
         $this->tcpSetting['workerPidFile'] = $this->rootPath.'Worker.pid';
         $this->tcpSetting['taskerPidFile'] = $this->rootPath.'Tasker.pid';
         if( isset( $setting['http'] ) ){
+            $this->httpSetting['start'] = true;
             $this->httpSetting = array_merge( $this->httpSetting, $setting['http'] );
         }
         if( isset( $setting['tcp'] ) ){
+            $this->tcpSetting['start'] = true;
             $this->tcpSetting = array_merge( $this->tcpSetting, $setting['tcp'] );
         }
         if( isset( $setting['discovery'] ) ){
@@ -127,13 +131,19 @@ class Server
         $option = isset( $argv[2] ) ? $argv[2] : null ;
         switch( $command ){
             case 'start':
-                // 只有以daemon形式启动服务的时候，将服务注册到redis
-                if( '-d' === $option ){
-                    $this->httpSetting['daemonize'] = true;
-                    $this->tcpSetting['daemonize'] = true;
-                    $this->_registerService();
+                if ($this->httpSetting['start'] || $this->tcpSetting['start'])
+                {
+                    // 只有以daemon形式启动服务的时候，将服务注册到redis
+                    if( '-d' === $option ){
+                        $this->httpSetting['daemonize'] = true;
+                        $this->tcpSetting['daemonize'] = true;
+                        $this->_registerService();
+                    }
+                    $this->_run();
+                }else{
+                    $this->_usageUI();
+                    exit();
                 }
-                $this->_run();
                 break;
             case 'reload':
                 $idJson = file_get_contents( $this->httpSetting['pidFile'] );
@@ -201,30 +211,56 @@ class Server
         //让每个OnWorkerStart回调都自动创建一个协程
         $pool->set(['enable_coroutine' => true]);
         $pool->on('workerStart', function ($pool, $workerId) {
-            // 开启tcp服务器
-            $this->tcpServer = new \Swoole\Coroutine\Server($this->tcpSetting['host'], $this->tcpSetting['port'] , false, true);
-            \Swoole\Coroutine::set($this->coroutineSetting);
-            $this->tcpServer->set($this->tcpSetting);
-            //收到15信号关闭服务
-            \Swoole\Process::signal(SIGTERM, function () {
-                $this->httpServer->shutdown();
-                $this->tcpServer->shutdown();
-            });
-            //接收到新的连接请求 并自动创建一个协程
-            $this->tcpServer->handle(function (\Swoole\Coroutine\Server\Connection $conn) {
-                while (true) {
-                    //接收数据
-                    $data = $conn->recv();
-                    if (empty($data)) {
-                        $conn->close();
-                        break;
+            if ($this->httpSetting['start'])
+            {
+                unset($this->httpSetting['start']);
+                //$this->httpSetting['host'] = 'unix://'.$this->rootPath.'/chj-swoole.sock';
+                // 开启http服务器
+                go(function () {
+                    $server = new \Co\Http\Server($this->httpSetting['host'],$this->httpSetting['port'], false);
+                    $server->handle('/', function ($request, $response) {
+                        if ($request->server['path_info'] == '/favicon.ico' || $request->server['request_uri'] == '/favicon.ico') {
+                            $response->end();
+                            return;
+                        }
+                        $router = $request->server['request_uri'];
+                        $result = Router::runHttpMethod($router,$request);
+                        $response->end("<h1>Index</h1>");
+                    });
+                    $server->handle('/stop', function ($request, $response) use ($server) {
+                        $response->end("<h1>Stop</h1>");
+                        $server->shutdown();
+                    });
+                    $server->start();
+                });
+            }
+            if ($this->tcpSetting['start'])
+            {
+                unset($this->tcpSetting['start']);
+                // 开启tcp服务器
+                $tcpServer = new \Swoole\Coroutine\Server($this->tcpSetting['host'], $this->tcpSetting['port'] , false, true);
+                \Swoole\Coroutine::set($this->coroutineSetting);
+                $tcpServer->set($this->tcpSetting);
+                //收到15信号关闭服务
+                \Swoole\Process::signal(SIGTERM, function ()use($tcpServer) {
+                    $tcpServer->shutdown();
+                });
+                //接收到新的连接请求 并自动创建一个协程
+                $tcpServer->handle(function (\Swoole\Coroutine\Server\Connection $conn) {
+                    while (true) {
+                        //接收数据
+                        $data = $conn->recv();
+                        if (empty($data)) {
+                            $conn->close();
+                            break;
+                        }
+                        //发送数据
+                        $this->receive($conn,$data);
                     }
-                    //发送数据
-                    $this->receive($conn,$data);
-                }
-            });
-            //开始监听端口
-            $this->tcpServer->start();
+                });
+                //开始监听端口
+                $tcpServer->start();
+            }
         });
         $pool->start();
     }
@@ -507,9 +543,9 @@ class Server
         echo "--------------------------------------------------------------------------".PHP_EOL;
         echo "\033[1A\n\033[K-----------------------\033[47;30m CHJ Server \033[0m-----------------------------\n\033[0m";
         echo "    Version:0.2 Beta, PHP Version:".PHP_VERSION.'  SWOOLE Version:'.SWOOLE_VERSION.PHP_EOL;
-        echo "         The Server is running on TCP".PHP_EOL.PHP_EOL;
+        echo "         The Server is running on TCP&&HTTP".PHP_EOL.PHP_EOL;
         echo "--------------------------\033[47;30m PORT \033[0m---------------------------\n";
-        echo "                     TCP:".$this->tcpSetting['port']."\n\n";
+        echo "                     TCP:".$this->tcpSetting['port']."HTTP:".$this->httpSetting['port']."\n\n";
         echo "------------------------\033[47;30m PROCESS \033[0m---------------------------\n";
         echo "      MasterPid---ManagerPid---WorkerId---WorkerPid".PHP_EOL;
     }

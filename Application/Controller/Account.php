@@ -12,14 +12,12 @@ class Account{
 
 	}	
 
-  public function login($params,$id){
-      var_dump($params,$id);
+  public function login($params){
     $loginResult = $this->accountModel->login();
-    return [$params,$id,$loginResult];
+    return [$params,$loginResult];
   }
 
     public function login2($params,$id){
-        var_dump($params,$id);
         $loginResult = $this->accountModel->login();
         return [$params,$id,$loginResult];
     }

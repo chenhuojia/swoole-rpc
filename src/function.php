@@ -9,7 +9,7 @@ if( !extension_loaded('swoole') ){
 
 // 定义系统常量
 define( 'DS', DIRECTORY_SEPARATOR );
-define( 'ROOT', __DIR__.DS);
+define( 'ROOT', dirname(__DIR__).DS);
 define('HaveGenerator', class_exists("\\Generator", false));
 
 function array_get($data,$key, $default = '')
