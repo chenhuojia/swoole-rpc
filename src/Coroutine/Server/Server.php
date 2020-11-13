@@ -36,7 +36,7 @@ class Server
     /*
      * @desc : swoole tcp服务的配置
      */
-    private $tcpSetting = [
+    private     $tcpSetting = [
         'open_length_check' => true,
         'package_max_length' => 1024 * 1024,
         'package_length_type' => 'N',
@@ -61,9 +61,11 @@ class Server
     ];
 
     private $coroutineSetting = [
-        'max_coroutine' =>   4,
+        'max_coroutine' =>   100,
         'log_level'     => SWOOLE_LOG_TRACE,
         'trace_flags'   => SWOOLE_TRACE_ALL,
+        'socket_connect_timeout' => 1,
+        'socket_timeout' => 5
     ];
 
     /*
@@ -211,6 +213,7 @@ class Server
         //让每个OnWorkerStart回调都自动创建一个协程
         $pool->set(['enable_coroutine' => true]);
         $pool->on('workerStart', function ($pool, $workerId) {
+            \Swoole\Coroutine::set($this->coroutineSetting);
             if ($this->httpSetting['start'])
             {
                 unset($this->httpSetting['start']);
@@ -239,7 +242,6 @@ class Server
                 unset($this->tcpSetting['start']);
                 // 开启tcp服务器
                 $tcpServer = new \Swoole\Coroutine\Server($this->tcpSetting['host'], $this->tcpSetting['port'] , false, true);
-                \Swoole\Coroutine::set($this->coroutineSetting);
                 $tcpServer->set($this->tcpSetting);
                 //收到15信号关闭服务
                 \Swoole\Process::signal(SIGTERM, function ()use($tcpServer) {
