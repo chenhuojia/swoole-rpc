@@ -13,7 +13,7 @@ include  '../vendor/autoload.php';
 /**
 * 开启TCP(9501)&HTTP(8090)服务
 **/
-$server = new chj\SwooleRpc\Coroutine\Server\Server();
+$server = new chj\Swoole\Coroutine\Server\Server();
 //配置
 $server->initSetting([
         'http' =>[   
@@ -43,7 +43,7 @@ $server->run();
 ```php
 include  '../vendor/autoload.php';
 
-$client = \chj\SwooleRpc\Coroutine\Client\RpcClient::getInstance(['host'=>'0.0.0.0','port'=>'6667']);
+$client = \chj\Swoole\Coroutine\Client\RpcClient::getInstance(['host'=>'0.0.0.0','port'=>'6667']);
 
 $data = $client->login('chj','login');
 
@@ -53,7 +53,7 @@ print_r($data);
 要在服务启动前注册路由
 ````php
 include  '../vendor/autoload.php';
-chj\SwooleRpc\Library\Router::group(['namespace' => 'Application\Controller'], function ($route) {
+chj\Swoole\Library\Router::group(['namespace' => 'Application\Controller'], function ($route) {
     $route::add('login','Account@login');
     $route::add('login2','Account@login2');
     $route::add('getUserByName', function ($name,$tes) {
