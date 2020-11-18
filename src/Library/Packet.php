@@ -13,23 +13,24 @@ class Packet{
         if (!$data) return '';
         if (is_string($data))
         {
+            $data = trim($data);
             if( 'tcp' == $type ){
                 if( 'eof' == self::$tcpPack ){
                     $data = $data .'\r\n';
                 }else if( 'length' == self::$tcpPack ){
                     $data = pack( 'N', strlen( $data ) ).$data;
                 }
-                return $data;
             }
         }else{
             if( 'tcp' == $type ){
                 if( 'eof' == self::$tcpPack ){
                     $data = json_encode( $data ).'\r\n';
                 }else if( 'length' == self::$tcpPack ){
-                    $data = json_encode( $data );
+                    $data = json_encode( $data,JSON_UNESCAPED_UNICODE );
                     $data = pack( 'N', strlen( $data ) ).$data;
                 }
-                return $data;
+            }else{
+                $data = json_encode( $data,JSON_UNESCAPED_UNICODE );
             }
         }
         return $data;
@@ -52,10 +53,12 @@ class Packet{
         }
         if (SWOOLE_VERSION >= '4.5.6')
         {
-            return swoole_substr_json_decode( $jsonString, 0,null,true );
+            $reuslt = swoole_substr_json_decode( $jsonString, 0,null,true );
         }else{
-            return json_decode($jsonString);
+            $reuslt = json_decode($jsonString);
         }
+        $reuslt = $reuslt?:$jsonString;
+        return $reuslt;
     }
 
     /*

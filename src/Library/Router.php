@@ -349,7 +349,6 @@ class Router{
             {
                 $params =  array_merge($params,$request->post);
             }
-            var_dump($params);
             return call_user_func_array(self::$calls[$name]->method,$params);
         }
         return ['code'=>-1,'message'=>'fail'];
