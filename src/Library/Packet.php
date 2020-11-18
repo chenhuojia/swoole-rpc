@@ -10,6 +10,7 @@ class Packet{
      * @desc : 配置packet的拆包方式
      */
     public static function encode($data, $type = "tcp" ){
+        if (!$data) return '';
         if (is_string($data))
         {
             if( 'tcp' == $type ){
