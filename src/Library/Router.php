@@ -219,7 +219,7 @@ class Router{
      * @param string $alias
      * @return void
      */
-    private function mapRefMethodParameterName($class, string $method, string $alias)
+    private  static function mapRefMethodParameterName($class, string $method, string $alias)
     {
         $ref = new \ReflectionMethod($class, $method);
         $alias = strtolower($alias);
@@ -235,7 +235,7 @@ class Router{
      * @param string $alias
      * @return void
      */
-    private function mapRefFuncParameterName(callable $callback, string $alias)
+    private static function mapRefFuncParameterName(callable $callback, string $alias)
     {
         $ref = new \ReflectionFunction($callback);
         $alias = strtolower($alias);
