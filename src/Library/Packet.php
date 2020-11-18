@@ -9,18 +9,30 @@ class Packet{
     /*
      * @desc : 配置packet的拆包方式
      */
-    public static function encode( array $data, $type = "tcp" ){
-        if( 'tcp' == $type ){
-            if( 'eof' == self::$tcpPack ){
-                $data = json_encode( $data ).'\r\n';
-            }else if( 'length' == self::$tcpPack ){
-                $data = json_encode( $data );
-                $data = pack( 'N', strlen( $data ) ).$data;
+    public static function encode($data, $type = "tcp" ){
+        if (is_string($data))
+        {
+            if( 'tcp' == $type ){
+                if( 'eof' == self::$tcpPack ){
+                    $data = $data .'\r\n';
+                }else if( 'length' == self::$tcpPack ){
+                    $data = pack( 'N', strlen( $data ) ).$data;
+                }
+                return $data;
             }
-            return $data;
-        } else {
-            return json_encode( $data );
+        }else{
+            if( 'tcp' == $type ){
+                if( 'eof' == self::$tcpPack ){
+                    $data = json_encode( $data ).'\r\n';
+                }else if( 'length' == self::$tcpPack ){
+                    $data = json_encode( $data );
+                    $data = pack( 'N', strlen( $data ) ).$data;
+                }
+                return $data;
+            }
         }
+        return $data;
+
     }
 
     /*
