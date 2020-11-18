@@ -159,7 +159,7 @@ class Server
                 break;
             case 'status':
                 $this->_statusUI();
-                if( is_file( $this->httpSetting['workerPidFile'] ) && is_file( $this->httpSetting['taskerPidFile'] ) ){
+                /*if( is_file( $this->httpSetting['workerPidFile'] ) && is_file( $this->httpSetting['taskerPidFile'] ) ){
                     //读取所有进程，并列出来
                     $idsJson = file_get_contents( $this->httpSetting['pidFile'] );
                     $idsArr = json_decode( $idsJson, true );
@@ -183,7 +183,7 @@ class Server
                         str_pad( $tempIdPid[1], 12, ' ', STR_PAD_BOTH );
                         echo PHP_EOL;
                     }
-                }
+                }*/
                 break;
             case 'stop':
                 // 删除redis中服务注册的信息
@@ -194,12 +194,12 @@ class Server
                     $redis->hdel( $this->serviceRegisterSetting['serviceName'], $this->getLocalIp() );
                 });
                 // 获取pid们
-                $idJson = file_get_contents( $this->httpSetting['pidFile'] );
+              /*  $idJson = file_get_contents( $this->httpSetting['pidFile'] );
                 $idArray = json_decode( $idJson, true );
                 @unlink( $this->httpSetting['pidFile'] );
                 @unlink( $this->httpSetting['workerPidFile'] );
                 @unlink( $this->httpSetting['taskerPidFile'] );
-                posix_kill( $idArray['masterPid'], SIGTERM );
+                posix_kill( $idArray['masterPid'], SIGTERM );*/
                 break;
             default:
                 $this->_usageUI();
