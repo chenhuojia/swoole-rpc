@@ -121,16 +121,19 @@ class Server
         ] );
     }
 
-    public function run()
+    public function run($command='',$option='')
     {
-        $argc = $_SERVER['argc'];
-        $argv = $_SERVER['argv'];
-        if( $argc <= 1 || $argc > 3 ){
-            $this->_usageUI();
-            exit();
+        if (!$command)
+        {
+            $argc = $_SERVER['argc'];
+            $argv = $_SERVER['argv'];
+            if( $argc <= 1 || $argc > 3 ){
+                $this->_usageUI();
+                exit();
+            }
+            $command = $argv[1];
+            $option = isset( $argv[2] ) ? $argv[2] : null ;
         }
-        $command = $argv[1];
-        $option = isset( $argv[2] ) ? $argv[2] : null ;
         switch( $command ){
             case 'start':
                 if ($this->httpSetting['start'] || $this->tcpSetting['start'])
