@@ -231,10 +231,10 @@ class Server
                         }
                         $router = $request->server['request_uri'];
                         $result = Router::runHttpMethod($router,$request);
-                        $response->end("<h1>Index</h1>");
+                        $response->end(json_encode($result,256));
                     });
                     $server->handle('/stop', function ($request, $response) use ($server) {
-                        $response->end("<h1>Stop</h1>");
+                        $response->end(json_encode(['code'=>1,'message'=>'stop'],256));
                         $server->shutdown();
                     });
                     $server->start();
