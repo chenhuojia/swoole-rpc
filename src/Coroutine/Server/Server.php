@@ -151,61 +151,83 @@ class Server
                 }
                 break;
             case 'reload':
-                $idJson = file_get_contents( $this->httpSetting['pidFile'] );
-                $idArray = json_decode( $idJson, true );
-                file_put_contents( $this->httpSetting['workerPidFile'], '' );
-                file_put_contents( $this->httpSetting['taskerPidFile'], '' );
-                posix_kill( $idArray['managerPid'], SIGUSR1 );
+                $this->_stop();
+                $this->run('start',$option);
                 break;
             case 'status':
-                $this->_statusUI();
-                /*if( is_file( $this->httpSetting['workerPidFile'] ) && is_file( $this->httpSetting['taskerPidFile'] ) ){
-                    //读取所有进程，并列出来
-                    $idsJson = file_get_contents( $this->httpSetting['pidFile'] );
-                    $idsArr = json_decode( $idsJson, true );
-                    $workerPidString = rtrim( file_get_contents( $this->httpSetting['workerPidFile'] ), '|' );
-                    $taskerPidString = rtrim( file_get_contents( $this->httpSetting['taskerPidFile'] ), '|' );
-                    $workerPidArr = explode( '|', $workerPidString );
-                    $taskerPidArr = explode( '|', $taskerPidString );
-                    foreach( $workerPidArr as $workerPidItem ){
-                        $tempIdPid = explode( ':', $workerPidItem );
-                        echo str_pad( $idsArr['masterPid'], 22, ' ', STR_PAD_BOTH ),
-                        str_pad( $idsArr['managerPid'], 14, ' ', STR_PAD_BOTH ),
-                        str_pad( $tempIdPid[0], 5, ' ', STR_PAD_BOTH ),
-                        str_pad( $tempIdPid[1], 12, ' ', STR_PAD_BOTH );
-                        echo PHP_EOL;
+                $shell = "netstat -apn | grep %s | wc -l ";
+                try{
+                    $ports = [
+                        'tpc'=>[
+                            'status' => false,
+                            'port'   => $this->tcpSetting['port'],
+                        ],
+                        'http'=>[
+                            'status' => false,
+                            'port'   => $this->httpSetting['port']
+                        ],
+                    ];
+                    $status = false;
+                    foreach ($ports as $key => $port)
+                    {
+                        $setting = $key.'Setting';
+                        if (shell_exec(sprintf($shell,$port['port'])) > 0)
+                        {
+                            $status = true;
+                            $this->$setting['status'] = true;
+                        }else{
+                            $this->$setting['status'] = false;
+                        }
                     }
-                    foreach( $taskerPidArr as $taskerPidItem ){
-                        $tempIdPid = explode( ':', $taskerPidItem );
-                        echo str_pad( $idsArr['masterPid'], 22, ' ', STR_PAD_BOTH ),
-                        str_pad( $idsArr['managerPid'], 14, ' ', STR_PAD_BOTH ),
-                        str_pad( $tempIdPid[0], 5, ' ', STR_PAD_BOTH ),
-                        str_pad( $tempIdPid[1], 12, ' ', STR_PAD_BOTH );
-                        echo PHP_EOL;
+                    $this->_statusUI();
+                    if ($status)
+                    {
+                        $this->_registerMethodUI();
                     }
-                }*/
+                }catch(\Exception $e)
+                {
+                    throw $e;
+                }
                 break;
             case 'stop':
                 // 删除redis中服务注册的信息
-                \Swoole\Runtime::enableCoroutine($flags = SWOOLE_HOOK_ALL);
+                /*\Swoole\Runtime::enableCoroutine($flags = SWOOLE_HOOK_ALL);
                 go(function () {
                     $redis = new \Redis();
                     $redis->connect( $this->serviceRegisterSetting['host'], $this->serviceRegisterSetting['port'] );
                     $redis->hdel( $this->serviceRegisterSetting['serviceName'], $this->getLocalIp() );
-                });
-                // 获取pid们
-              /*  $idJson = file_get_contents( $this->httpSetting['pidFile'] );
-                $idArray = json_decode( $idJson, true );
-                @unlink( $this->httpSetting['pidFile'] );
-                @unlink( $this->httpSetting['workerPidFile'] );
-                @unlink( $this->httpSetting['taskerPidFile'] );
-                posix_kill( $idArray['masterPid'], SIGTERM );*/
+                });*/
+                $this->_stop();
                 break;
             default:
                 $this->_usageUI();
                 break;
         }
     }
+
+    private function _stop()
+    {
+        $shell = "ps aux|grep chj-master-thread |grep -v grep |  awk '{print $2}'";
+        $pids = shell_exec($shell);
+        try{
+            $search = array(" ","\n","\r","\t");
+            $replace = array(",",",",",",",");
+            $pids = str_replace($search, $replace, $pids);
+            $pids = explode(',',$pids);
+            $pids = array_filter($pids);
+            if($pids && is_array($pids))
+            {
+                foreach($pids as $pid)
+                {
+                    shell_exec(' kill -9 '.$pid);
+                }
+            }
+        }catch(\Exception $e)
+        {
+            throw $e;
+        }
+    }
+
     /*
      * @desc : 开启服务
      */
@@ -219,7 +241,6 @@ class Server
             \Swoole\Coroutine::set($this->coroutineSetting);
             if ($this->httpSetting['start'])
             {
-                unset($this->httpSetting['start']);
                 //$this->httpSetting['host'] = 'unix://'.$this->rootPath.'/chj-swoole.sock';
                 // 开启http服务器
                 go(function () {
@@ -242,7 +263,6 @@ class Server
             }
             if ($this->tcpSetting['start'])
             {
-                unset($this->tcpSetting['start']);
                 // 开启tcp服务器
                 $tcpServer = new \Swoole\Coroutine\Server($this->tcpSetting['host'], $this->tcpSetting['port'] , false, true);
                 $tcpServer->set($this->tcpSetting);
@@ -548,11 +568,17 @@ class Server
         echo "--------------------------------------------------------------------------".PHP_EOL;
         echo "\033[1A\n\033[K-----------------------\033[47;30m CHJ Server \033[0m-----------------------------\n\033[0m";
         echo "    Version:0.2 Beta, PHP Version:".PHP_VERSION.'  SWOOLE Version:'.SWOOLE_VERSION.PHP_EOL;
-        echo "         The Server is running on TCP&&HTTP".PHP_EOL.PHP_EOL;
+        #echo "         The Server is running on TCP&&HTTP".PHP_EOL.PHP_EOL;
         echo "--------------------------\033[47;30m PORT \033[0m---------------------------\n";
-        echo "                     TCP:".$this->tcpSetting['port']."HTTP:".$this->httpSetting['port']."\n\n";
+        if ($this->tcpSetting['start'])
+        {
+            echo "                     TCP:".$this->tcpSetting['port']."\n";
+        }
+        if ($this->httpSetting['start'])
+        {
+            echo "                     HTTP:".$this->httpSetting['port']."\n\n";
+        }
         echo "------------------------\033[47;30m PROCESS \033[0m---------------------------\n";
-        echo "      MasterPid---ManagerPid---WorkerId---WorkerPid".PHP_EOL;
     }
 
     /*
