@@ -68,4 +68,15 @@ class Packet{
         self::$tcpPack = isset( $setting['tcpPack'] ) ? $setting['tcpPack'] : 'length' ;
     }
 
+
+    public static function sign($string)
+    {
+
+    }
+
+    public static function decrypt($string)
+    {
+
+    }
+
 }

@@ -29,14 +29,10 @@ class RpcClient
      */
     public static function getInstance(array $config)
     {
-        if(!self::$instance)
-        {
-            self::$instance = new self($config);
-        }
-        return self::$instance;
+        return new self($config);
     }
 
-    private function __construct(array $config)
+    public function __construct(array $config)
     {
         $config && $this->config = $config;
 
