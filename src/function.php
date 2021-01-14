@@ -12,14 +12,44 @@ define( 'DS', DIRECTORY_SEPARATOR );
 define( 'ROOT', dirname(__DIR__).DS);
 define('HaveGenerator', class_exists("\\Generator", false));
 
-function array_get($data,$key, $default = '')
-{
-    if (array_key_exists($key,$data))
+if (! function_exists('array_get')) {
+    /**
+     * Get the available container instance.
+     *
+     * @param  string|null  $abstract
+     * @param  array  $parameters
+     * @return mixed
+     */
+    function array_get($data,$key, $default = '')
     {
-        return $data[$key];
+        if (class_exists('\Illuminate\Support\Arr'))
+        {
+            $value = \Illuminate\Support\Arr::get($data,$key,$default);
+            if (blank($value)){
+                return $default;
+            }
+            return  $value;
+        }
+        if (strpos($key, '.') === false) {
+            return $data[$key] ?? $default;
+        }
+        $segments = array_filter(explode('.', $key));
+        $count = count($segments);
+        $tmp = $data;
+        for ($i=0; $i < $count;$i++)
+        {
+            if (!isset($tmp[$segments[$i]])) return $default;
+            if ($i == ($count -1))
+            {
+                return $tmp[$segments[$i]];
+            }
+            $tmp = $tmp[$segments[$i]];
+        }
+        return  $default;
     }
-    return  $default;
+
 }
+
 function exists2($array, $key)
 {
     if ($array instanceof ArrayAccess) {
