@@ -107,6 +107,7 @@ class Router{
                 $f = new \ReflectionFunction($func);
             }
         }
+
         $call = new \stdClass();
         $call->method = $func;
         $call->mode = isset($options['mode']) ? $options['mode'] :0;
@@ -303,12 +304,12 @@ class Router{
      */
     private static function parseController($namespace, string $controller): array
     {
-        $namespace = $namespace ? $namespace : config('hprose.controller');
+        $namespace = $namespace ? $namespace : config('chj_swoole.controller');
 
         list($classAsStr, $method) = explode('@', $controller);
-        $targetModel = join('\\', array_filter([$namespace, $classAsStr]));
-        $class = new $targetModel;
-        return [$class, $method];
+        $className = join('\\', array_filter([$namespace, $classAsStr]));
+        $class = Ioc::getInstance($className);
+        return [$class,$method];
     }
 
     /**
@@ -328,6 +329,20 @@ class Router{
         return ['code'=>-1,'message'=>'fail'];
     }
 
+    protected static function fun($className,$action){
+
+        $reflectionMethod = new \ReflectionMethod($className,$action);
+
+        $parammeters = $reflectionMethod->getParameters();
+
+        $params = array();
+
+        foreach ($parammeters as $item) {
+            preg_match('/> ([^ ]*)/',$item,$arr);
+            $class = trim($arr[1]);
+            $params[] = new $class();
+        }
+    }
     /**
      * 运行方法
      * @param $name
@@ -338,6 +353,17 @@ class Router{
     {
         $name = ltrim($name,'/');
         $name = strtolower($name);
+        $_POST = [];
+        $_GET = [];
+        $_FILES = [];
+        $_COOKIE = [];
+        $_SERVER = [];
+        $request->get && $_GET = $request->get;
+        $request->post && $_POST = $request->post;
+        $request->files && $_FILES = $request->files;
+        $request->server && $_SERVER = $request->server;
+        $request->cookie && $_COOKIE = $request->cookie;
+        $GLOBALS['HTTP_RAW_POST_DATA'] = $request->getContent();
         if (array_key_exists($name,self::$calls))
         {
             $params = [];
