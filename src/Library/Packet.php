@@ -55,7 +55,7 @@ class Packet{
         {
             $reuslt = swoole_substr_json_decode( $jsonString, 0,null,true );
         }else{
-            $reuslt = json_decode($jsonString);
+            $reuslt = json_decode($jsonString,1);
         }
         $reuslt = $reuslt?:$jsonString;
         return $reuslt;
