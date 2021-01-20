@@ -65,6 +65,7 @@ class RpcClient
         $result = [];
         if( 'cli' !== php_sapi_name() ){
             $client = new \Swoole\Client(SWOOLE_SOCK_TCP);
+            $client->set($this->setting);
             if (!$client->connect($this->config['host'], $this->config['port'], -1)) {
                 throw new \Exception('客户端连接失败：'. $client->errCode);
             }
@@ -76,11 +77,11 @@ class RpcClient
             \Swoole\Runtime::enableCoroutine($flags = SWOOLE_HOOK_ALL);
             \Co\run(function ()use($send,&$result) {
                 $client = new \Swoole\Coroutine\Client(SWOOLE_SOCK_TCP);
+                $client->set($this->setting);
                 if (! $client->connect($this->config['host'], $this->config['port'], 0.5))
                 {
                     throw new \Exception('客户端连接失败：'. $client->errCode);
                 }
-                $client->set($this->setting);
                 $send = Packet::encode($send);
                 $client->send($send);
                 $jsonString =  $client->recv();

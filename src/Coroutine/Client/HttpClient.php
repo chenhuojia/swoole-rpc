@@ -67,21 +67,33 @@ class HttpClient
     private function create($send)
     {
         $result = [];
-        \Swoole\Runtime::enableCoroutine($flags = SWOOLE_HOOK_ALL);
-        \Co\run(function ()use($send,&$result) {
-            $client = new \Swoole\Coroutine\Client(SWOOLE_SOCK_TCP);
-            if (! $client->connect($this->config['host'], $this->config['port'], 0.5))
-            {
+        if( 'cli' !== php_sapi_name() ){
+            $client = new \Swoole\Client(SWOOLE_SOCK_TCP);
+            $client->set($this->setting);
+            if (!$client->connect($this->config['host'], $this->config['port'], -1)) {
                 throw new \Exception('客户端连接失败：'. $client->errCode);
             }
-            $client->set($this->setting);
             $send = Packet::encode($send);
             $client->send($send);
             $jsonString =  $client->recv();
             $result = Packet::decode($jsonString);
-            $client->close();
-            return $result;
-        });
+        }else{
+            \Swoole\Runtime::enableCoroutine($flags = SWOOLE_HOOK_ALL);
+            \Co\run(function ()use($send,&$result) {
+                $client = new \Swoole\Coroutine\Client(SWOOLE_SOCK_TCP);
+                $client->set($this->setting);
+                if (! $client->connect($this->config['host'], $this->config['port'], 0.5))
+                {
+                    throw new \Exception('客户端连接失败：'. $client->errCode);
+                }
+                $send = Packet::encode($send);
+                $client->send($send);
+                $jsonString =  $client->recv();
+                $result = Packet::decode($jsonString);
+                $client->close();
+                return $result;
+            });
+        }
         return $result;
     }
 }
