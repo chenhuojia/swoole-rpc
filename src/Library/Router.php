@@ -11,6 +11,8 @@ class Router{
     static $calls = [];   //
     static $names = [];   //
 
+    static $middleware;
+
     /**
      * 创建一组方法
      *
@@ -324,6 +326,10 @@ class Router{
         $name = strtolower($name);
         if (array_key_exists($name,self::$calls))
         {
+            if (self::$middleware->stack)
+            {
+                self::$middleware->call($params);
+            }
             return call_user_func_array(self::$calls[$name]->method,$params);
         }
         return ['code'=>-1,'message'=>'fail'];

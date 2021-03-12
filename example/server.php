@@ -1,14 +1,16 @@
 <?php
 
-include '../src/function.php';
-function autoload( $class ){
-    $includePath = str_replace( '\\', DS, $class );
-    $includePath = str_replace( 'chj/Swoole', 'src', $includePath );
-    $targetFile = ROOT.$includePath.'.php';
-    require_once( $targetFile );
+include dirname(dirname(__FILE__)).'/src/function.php';
+if(!function_exists('classAutoLoader')){
+    function classAutoLoader($class){
+        $class = str_replace( '\\', DS, $class );
+        $class = str_replace( 'chj\Swoole', 'src', $class );
+        $class = str_replace( 'chj/Swoole', 'src', $class );
+        $class = ROOT.$class;
+        $classFile = $class.'.php';
+        if(is_file($classFile)&&!class_exists($class)) include $classFile;
+    }
 }
-spl_autoload_register( 'autoload' );
-
 chj\Swoole\Library\Router::group(['namespace' => 'Application\Controller'], function ($route) {
     $route::add('login','Account@login');
     $route::add('login2','Account@login2');

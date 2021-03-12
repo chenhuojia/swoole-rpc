@@ -2,6 +2,8 @@
 
 namespace chj\Swoole\Library;
 
+use chj\Swoole\Library\Logger\Logger;
+
 class Packet{
 
     private static $tcpPack = 'length';  // length eof两种方式
@@ -11,6 +13,7 @@ class Packet{
      */
     public static function encode($data, $type = "tcp" ){
         if (!$data) return '';
+        Logger::debug('加密前',$data);
         if (is_string($data))
         {
             $data = trim($data);
@@ -33,6 +36,7 @@ class Packet{
                 $data = json_encode( $data,JSON_UNESCAPED_UNICODE );
             }
         }
+        Logger::debug('加密后：'.$data);
         return $data;
 
     }
@@ -41,24 +45,35 @@ class Packet{
      * @desc : 配置packet的拆包方式
      */
     public static function decode( $jsonString, $type = "tcp" ){
-        if( 'tcp' == $type ){
-            if( 'eof' == self::$tcpPack ){
-                $jsonString = str_replace( '\r\n', '', $jsonString );
-            }else if( 'length' == self::$tcpPack ){
-                $header = substr( $jsonString, 0, 4 );
-                $len = unpack( 'Nlen', $header );
-                $len = $len['len'];
-                $jsonString = substr( $jsonString, 4, $len );
+        try {
+            Logger::debug('解密前：'.$jsonString);
+            if( 'tcp' == $type ){
+                if( 'eof' == self::$tcpPack ){
+                    $jsonString = str_replace( '\r\n', '', $jsonString );
+                }else if( 'length' == self::$tcpPack ){
+                    $header = substr( $jsonString, 0, 4 );
+                    $len = unpack( 'Nlen', $header );
+                    $len = $len['len'];
+                    $jsonString = substr( $jsonString, 4, $len );
+                }
             }
-        }
-        if (SWOOLE_VERSION >= '4.5.6')
+            if (SWOOLE_VERSION >= '4.5.6')
+            {
+                $reuslt = swoole_substr_json_decode( $jsonString, 0,null,true );
+            }else{
+                $reuslt = json_decode($jsonString,1);
+            }
+            $reuslt = $reuslt?:$jsonString;
+            Logger::debug('解密后',$reuslt);
+            return $reuslt;
+        }catch (\Exception $exception)
         {
-            $reuslt = swoole_substr_json_decode( $jsonString, 0,null,true );
-        }else{
-            $reuslt = json_decode($jsonString,1);
+            return [
+                'code' => -1,
+                'message' => 'Wrong Data Format',
+            ] ;
         }
-        $reuslt = $reuslt?:$jsonString;
-        return $reuslt;
+
     }
 
     /*

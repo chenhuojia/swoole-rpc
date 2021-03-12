@@ -3,15 +3,15 @@
     exit( '服务只能运行在cli sapi模式下'.PHP_EOL );
 }*/
 
-if( !extension_loaded('swoole') ){
+/*if( !extension_loaded('swoole') ){
     exit( '请安装swoole扩展'.PHP_EOL );
-}
+}*/
 
 // 定义系统常量
 define( 'DS', DIRECTORY_SEPARATOR );
 define( 'ROOT', dirname(__DIR__).DS);
 define('HaveGenerator', class_exists("\\Generator", false));
-
+$logConfig = require_once dirname(__FILE__).'/Library/Logger/config.php';
 if (! function_exists('array_get')) {
     /**
      * Get the available container instance.

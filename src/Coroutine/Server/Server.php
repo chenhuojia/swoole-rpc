@@ -5,6 +5,7 @@
 namespace chj\Swoole\Coroutine\Server;
 use chj\Swoole\Library\Packet;
 use chj\Swoole\Library\Router;
+use chj\Swoole\Middleware\Middleware;
 
 class Server
 {
@@ -16,7 +17,6 @@ class Server
      * @desc : http服务器实例
      */
     private $httpServer = null;
-
 
     /*
      * @desc : tcp服务器实例
@@ -36,7 +36,7 @@ class Server
     /*
      * @desc : swoole tcp服务的配置
      */
-    private     $tcpSetting = [
+    private $tcpSetting = [
         'open_length_check' => true,
         'package_max_length' => 1024 * 1024,
         'package_length_type' => 'N',
@@ -119,6 +119,21 @@ class Server
         Packet::setting([
             'tcpPack' => $this->customSetting['tcpPack'],
         ] );
+    }
+
+
+    public function bindMiddleware(array $middlewares)
+    {
+        //中间件
+        $middlewareObj = new Middleware();
+        foreach ($middlewares as $key => $middleware)
+        {
+            if ($key && class_exists($middleware))
+            {
+                $middlewareObj->bind($key,$middleware);
+            }
+        }
+        Router::$middleware = $middlewareObj;
     }
 
     public function run($command='',$option='')
