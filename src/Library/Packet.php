@@ -13,7 +13,7 @@ class Packet{
      */
     public static function encode($data, $type = "tcp" ){
         if (!$data) return '';
-        Logger::debug('加密前',$data);
+        //Logger::debug('加密前',$data);
         if (is_string($data))
         {
             $data = trim($data);
@@ -36,7 +36,7 @@ class Packet{
                 $data = json_encode( $data,JSON_UNESCAPED_UNICODE );
             }
         }
-        Logger::debug('加密后：'.$data);
+       // Logger::debug('加密后：'.$data);
         return $data;
 
     }
@@ -45,9 +45,12 @@ class Packet{
      * @desc : 配置packet的拆包方式
      */
     public static function decode( $jsonString, $type = "tcp" ){
-        if (!$jsonString) return '';
+        if (!$jsonString)  return [
+            'code' => -1,
+            'message' => 'Wrong Data Format',
+        ] ;
         try {
-            Logger::debug('解密前：'.$jsonString);
+           // Logger::debug('解密前：'.$jsonString);
             if( 'tcp' == $type ){
                 if( 'eof' == self::$tcpPack ){
                     $jsonString = str_replace( '\r\n', '', $jsonString );
@@ -65,7 +68,7 @@ class Packet{
                 $reuslt = json_decode($jsonString,1);
             }
             $reuslt = $reuslt?:$jsonString;
-            Logger::debug('解密后',$reuslt);
+           // Logger::debug('解密后',$reuslt);
             return $reuslt;
         }catch (\Exception $exception)
         {
