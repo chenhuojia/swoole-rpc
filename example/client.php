@@ -10,9 +10,9 @@ if(!function_exists('classAutoLoader')){
         if(is_file($classFile)&&!class_exists($class)) include $classFile;
     }
 }
-spl_autoload_register( 'autoload' );
+spl_autoload_register( 'classAutoLoader' );
 
-$client = \chj\Swoole\Coroutine\Client\RpcClient::getInstance(['host'=>'120.76.174.33','port'=>'6667']);
+$client = \chj\Swoole\Coroutine\Client\HttpClient::getInstance(['host'=>'120.76.174.33','port'=>6667]);
 $action = 'sms/send';
 $data = $client->$action(['platform'=>'zcg','mobile'=>'13622742951']);
 print_r($data);

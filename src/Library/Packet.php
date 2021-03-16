@@ -45,6 +45,7 @@ class Packet{
      * @desc : 配置packet的拆包方式
      */
     public static function decode( $jsonString, $type = "tcp" ){
+        if (!$jsonString) return '';
         try {
             Logger::debug('解密前：'.$jsonString);
             if( 'tcp' == $type ){
