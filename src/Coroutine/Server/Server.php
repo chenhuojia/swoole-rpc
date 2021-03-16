@@ -399,6 +399,13 @@ class Server
         $targetModel = new $targetModel;
         $targetConfig['param'] = $param['param']['param'];
         $sendData = call_user_func_array( array( $targetModel, $param['param']['method'] ), array( $targetConfig ) );
+        if (!$sendData)
+        {
+            $sendData = [
+                'code'      =>  -1,
+                'message'   =>  'Wrong Response Data'
+            ];
+        }
         return $sendData;
 
     }
