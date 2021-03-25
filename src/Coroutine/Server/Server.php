@@ -26,12 +26,7 @@ class Server
     /*
      * @desc : swoole各个进程角色的title
      */
-    private $processTitle = [
-        'master' => 'chj-service-master-process',
-        'manager' => 'chj-service-manager-process',
-        'worker' => 'chj-service-worker-process',
-        'tasker' => 'chj-service-tasker-process',
-    ];
+    private $processTitle = 'chj-process-service';
 
     /*
      * @desc : swoole tcp服务的配置
@@ -88,6 +83,9 @@ class Server
         $this->tcpSetting['pidFile'] = $this->rootPath.'CHJ.pid';
         $this->tcpSetting['workerPidFile'] = $this->rootPath.'Worker.pid';
         $this->tcpSetting['taskerPidFile'] = $this->rootPath.'Tasker.pid';
+        if( isset( $setting['server_name'] ) ){
+            $this->processTitle = $setting['server_name'];
+        }
         if( isset( $setting['http'] ) ){
             $this->httpSetting['start'] = true;
             $this->httpSetting = array_merge( $this->httpSetting, $setting['http'] );
@@ -222,7 +220,7 @@ class Server
 
     private function _stop()
     {
-        $shell = "ps aux|grep chj-master-thread |grep -v grep |  awk '{print $2}'";
+        $shell = "ps aux|grep ".$this->processTitle." |grep -v grep |  awk '{print $2}'";
         $pids = shell_exec($shell);
         try{
             $search = array(" ","\n","\r","\t");
@@ -579,7 +577,7 @@ class Server
     private function _statusUI(){
         echo PHP_EOL;
         //打印服务器字幕
-        swoole_set_process_name("chj-master-thread");
+        swoole_set_process_name($this->processTitle);
         echo PHP_EOL.PHP_EOL.PHP_EOL;
         echo "--------------------------------------------------------------------------".PHP_EOL;
         echo "|                   |     |    ——————   |----   |----   ----              |".PHP_EOL;
