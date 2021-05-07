@@ -54,7 +54,7 @@ class Client
             $result = Packet::decode($jsonString);
         }else{
             \Swoole\Runtime::enableCoroutine($flags = SWOOLE_HOOK_ALL);
-            \Co\run(function ()use($send,&$result) {
+            \Swoole\Coroutine\run(function ()use($send,&$result) {
                 $client = new \Swoole\Coroutine\Client(SWOOLE_SOCK_TCP);
                 $client->set($this->setting);
                 if (! $client->connect($this->config['host'],intval($this->config['port']), 0.5))

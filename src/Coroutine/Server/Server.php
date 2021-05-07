@@ -256,7 +256,7 @@ class Server
             {
                 //$this->httpSetting['host'] = 'unix://'.$this->rootPath.'/chj-swoole.sock';
                 // 开启http服务器
-                go(function () {
+                \Swoole\Coroutine\run(function () {
                     $server = new \Co\Http\Server($this->httpSetting['host'],$this->httpSetting['port'], false);
                     $server->handle('/', function ($request, $response) {
                         if ($request->server['path_info'] == '/favicon.ico' || $request->server['request_uri'] == '/favicon.ico') {
@@ -530,7 +530,7 @@ class Server
         if(isset($this->tcpSetting['daemonize']) && $this->tcpSetting['daemonize'] === true ){
             if( isset( $this->serviceRegisterSetting['host'] ) && isset( $this->serviceRegisterSetting['port'] ) ){
                 \Swoole\Runtime::enableCoroutine($flags = SWOOLE_HOOK_ALL);
-                go(function () {
+                \Swoole\Coroutine\run(function () {
                     $redis = new \Redis();
                     if( false !== $redis->connect( $this->serviceRegisterSetting['host'], $this->serviceRegisterSetting['port'] ) ){
                         // 大概数据类似于：
